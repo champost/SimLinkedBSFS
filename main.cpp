@@ -62,58 +62,60 @@ double blockSize;
 //**********************************
 
 MTRand rMT;
-map<vector<int>, int> intVec2BrConfig;
-vector<int> npopVec, siteConfigVec, mutsPerBlockVec, recsPerBlockVec;
-map<vector<int>, int> finalTableMap;
+map<vector<int>, int> intVec2BrConfig, finalTableMap;
+vector<int> npopVec;
+vector<vector<int> > siteConfigVec, mutsPerBlockVec, recsPerBlockVec;
 int brClass, mutClass, foldBrClass, allBrClasses;
 
 int ms_argc;
 char **ms_argv;
-int ntrees;
+int nLinkedBlocks;
 
 
 double ranMT() { return(rMT()); }
 
 
-void incrRecsPerBlockVec(int counter) {
-	++recsPerBlockVec[counter];
+void incrRecsPerBlockVec(int idx, int counter) {
+	++recsPerBlockVec[idx-1][counter];
 }
 
 
-void incrMutsPerBlockVec(int counter) {
-	++mutsPerBlockVec[counter];
+void incrMutsPerBlockVec(int idx, int counter) {
+	++mutsPerBlockVec[idx-1][counter];
 }
 
 
-void setSiteConfig(int *brConfVec) {
+void setSiteConfig(int idx, int *brConfVec) {
 	vector<int> vec(brConfVec, brConfVec+npopVec.size());
-	siteConfigVec.push_back(intVec2BrConfig[vec]);
+	siteConfigVec[idx-1].push_back(intVec2BrConfig[vec]);
 }
 
 
 void setMutConfigCount() {
 
-	vector<int>::iterator siteIt = siteConfigVec.begin();
-	for (size_t block = 0; block < mutsPerBlockVec.size(); block++) {
+	for (int idx = 0; idx < nLinkedBlocks; idx++) {
+		vector<int>::iterator siteIt = siteConfigVec[idx].begin();
+		for (size_t block = 0; block < mutsPerBlockVec[idx].size(); block++) {
 
-		vector<int> mutConfigVec(allBrClasses, 0), foldedMutConfigVec(brClass, 0);
-		for (int site = 0; site < mutsPerBlockVec[block]; site++) {
-			++mutConfigVec[*siteIt];
-			++siteIt;
+			vector<int> mutConfigVec(allBrClasses, 0), foldedMutConfigVec(brClass, 0);
+			for (int site = 0; site < mutsPerBlockVec[idx][block]; site++) {
+				++mutConfigVec[*siteIt];
+				++siteIt;
+			}
+
+			for(int i = 1; i <= brClass; i++) {
+				foldedMutConfigVec[i-1] = mutConfigVec[i-1] + (foldBrClass * mutConfigVec[allBrClasses-i]);
+				if (foldBrClass && ((i-1) == (allBrClasses-i)))
+					foldedMutConfigVec[i-1] /= 2;
+			}
+
+			for(int i = 0; i < brClass; i++) {
+				if ((mutClass > 0) && (foldedMutConfigVec[i] > (mutClass - 2)))
+					foldedMutConfigVec[i] = mutClass - 1;
+			}
+
+			++finalTableMap[foldedMutConfigVec];
 		}
-
-		for(int i = 1; i <= brClass; i++) {
-			foldedMutConfigVec[i-1] = mutConfigVec[i-1] + (foldBrClass * mutConfigVec[allBrClasses-i]);
-			if (foldBrClass && ((i-1) == (allBrClasses-i)))
-				foldedMutConfigVec[i-1] /= 2;
-		}
-
-		for(int i = 0; i < brClass; i++) {
-			if ((mutClass > 0) && (foldedMutConfigVec[i] > (mutClass - 2)))
-				foldedMutConfigVec[i] = mutClass - 1;
-		}
-
-		++finalTableMap[foldedMutConfigVec];
 	}
 }
 
@@ -146,8 +148,10 @@ void evalBranchConfigs() {
 	for (unsigned long int i = 1; i <= (unsigned long int) pow(maxPopSize,npopVec.size()); i++) {
 		quo = i;
 		rem = 0;
-//		stringstream stst;
-//		stst << ")";
+/*
+		stringstream stst;
+		stst << ")";
+*/
 		sumConfig = 0;
 		skipConfig = false;
 		vector<int> vec;
@@ -169,22 +173,28 @@ void evalBranchConfigs() {
 				vec.push_back(0);
 			}
 
-//			if (j < npopVec.size() - 1)
-//				stst << ",";
+/*
+			if (j < npopVec.size() - 1)
+				stst << ",";
+*/
 		}
 
 		if (sumConfig == totPopSum)
 			break;
 
 		if (!skipConfig) {
-//			stst << "(";
-//			string config = stst.str();
-//			reverse(config.begin(),config.end());
+/*
+			stst << "(";
+			string config = stst.str();
+			reverse(config.begin(),config.end());
+*/
 			reverse(vec.begin(),vec.end());
 			intVec2BrConfig[vec] = count;
 			++count;
-//			printf("%d\t%d\t%s\n", i, count, config.c_str());
-//			printf("%d\t%s\n", count, config.c_str());
+/*
+			printf("%d\t%d\t%s\n", i, count, config.c_str());
+			printf("%d\t%s\n", count, config.c_str());
+*/
 		}
 	}
 }
@@ -210,7 +220,7 @@ int main(int argc, char* argv[]) {
 //	int nsam = atoi(argv[1]);
 	int kmax = atoi(argv[argc-3]), npopSize = atoi(argv[argc-2]);
 	char brFold = argv[argc-1][0];
-	ntrees = atoi(argv[2]);
+	nLinkedBlocks = atoi(argv[2]);
 	blockSize = atof(argv[argc-4]);
 
 	readPopSizes(npopSize);
@@ -236,8 +246,10 @@ int main(int argc, char* argv[]) {
 	else
 		mutClass = kmax+2;
 
-//	printf("Total number of (possible) configs: %.0f\n", pow(mutClass, brClass));
-//	exit(-1);
+/*
+	printf("Total number of (possible) configs: %.0f\n", pow(mutClass, brClass));
+	exit(-1);
+*/
 
 	evalBranchConfigs();
 
@@ -247,8 +259,11 @@ int main(int argc, char* argv[]) {
 		nBlocks = ceil(tmp);
 	else
 		nBlocks = floor(tmp);
-	mutsPerBlockVec = vector<int>(nBlocks, 0);
-	recsPerBlockVec = vector<int>(nBlocks, 0);
+//	mutsPerBlockVec = vector<int>(nBlocks, 0);
+//	recsPerBlockVec = vector<int>(nBlocks, 0);
+	mutsPerBlockVec = vector<vector<int> > (nLinkedBlocks, vector <int>(nBlocks, 0));
+	recsPerBlockVec = vector<vector<int> > (nLinkedBlocks, vector <int>(nBlocks, 0));
+	siteConfigVec = vector<vector<int> > (nLinkedBlocks, vector <int>());
 
 	// calling ms
 	ms_argc = argc - 4;
@@ -256,26 +271,31 @@ int main(int argc, char* argv[]) {
 
 	main_ms(ms_argc, ms_argv);
 
-//	printf("\nnBlocks: %d \nmutsPerBlock: ", nBlocks);
-//	for(int i=0; i<nBlocks; i++)
-//		printf("%d ", mutsPerBlockVec[i]);
-//	printf("\n");
-//	printf("recsPerBlock: ");
-//	for(int i=0; i<nBlocks; i++)
-//		printf("%d ", recsPerBlockVec[i]);
-//	printf("\n");
-//	for (size_t j = 0; j < siteConfigVec.size(); j++) {
-//		cout << siteConfigVec[j] << " ";
-//	}
+/*
+	printf("\nnBlocks: %d \nmutsPerBlock: ", nBlocks);
+	for(int i=0; i<nBlocks; i++)
+		printf("%d ", mutsPerBlockVec[i]);
+	printf("\n");
+	printf("recsPerBlock: ");
+	for(int i=0; i<nBlocks; i++)
+		printf("%d ", recsPerBlockVec[i]);
+	printf("\n");
+	for (size_t j = 0; j < siteConfigVec.size(); j++) {
+		cout << siteConfigVec[j] << " ";
+	}
+*/
 
 	setMutConfigCount();
+	int totBlocks = nBlocks*nLinkedBlocks;
 	for (map<vector<int>, int>::iterator it = finalTableMap.begin(); it != finalTableMap.end(); it++)
-		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/mutsPerBlockVec.size());
+		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
 
+/*
 	ofstream ofs("segsites.txt",ios::out);
 	for (size_t block = 0; block < mutsPerBlockVec.size(); block++)
 		ofs << mutsPerBlockVec[block] << endl;
 	ofs.close();
+*/
 
 	return 0;
 }

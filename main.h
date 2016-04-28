@@ -45,9 +45,9 @@ extern "C" {
 int main_ms(int ms_argc, char *ms_argv[]);
 
 double ranMT();
-void setSiteConfig(int *brConfVec);
-void incrMutsPerBlockVec(int counter);
-void incrRecsPerBlockVec(int counter);
+void setSiteConfig(int idx, int *brConfVec);
+void incrMutsPerBlockVec(int idx, int counter);
+void incrRecsPerBlockVec(int idx, int counter);
 }
 
 #endif /* MAIN_H_ */
