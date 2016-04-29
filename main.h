@@ -48,6 +48,7 @@ double ranMT();
 void setSiteConfig(int idx, int *brConfVec);
 void incrMutsPerBlockVec(int idx, int counter);
 void incrRecsPerBlockVec(int idx, int counter);
+double ran1();
 }
 
 #endif /* MAIN_H_ */

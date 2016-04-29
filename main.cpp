@@ -72,7 +72,7 @@ char **ms_argv;
 int nLinkedBlocks;
 
 
-double ranMT() { return(rMT()); }
+double ran1() { return(rMT()); }
 
 
 void incrRecsPerBlockVec(int idx, int counter) {
@@ -288,7 +288,8 @@ int main(int argc, char* argv[]) {
 	setMutConfigCount();
 	int totBlocks = nBlocks*nLinkedBlocks;
 	for (map<vector<int>, int>::iterator it = finalTableMap.begin(); it != finalTableMap.end(); it++)
-		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
+		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second);
+//		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
 
 /*
 	ofstream ofs("segsites.txt",ios::out);
