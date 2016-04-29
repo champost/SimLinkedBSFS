@@ -138,8 +138,6 @@ and thereafter modified by Champak Beeravolu Reddy (champak.br@gmail.com)
      requirements.  4 Mar 2014.
 ***************************************************************************/
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -151,12 +149,6 @@ and thereafter modified by Champak Beeravolu Reddy (champak.br@gmail.com)
 
 unsigned maxsites = SITESINC ;
 
-
-struct segl {
-	int beg;
-	struct node *ptree;
-	int next;
-	};
 
 double *posit ;
 double segfac ;
@@ -300,9 +292,9 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 
 	if( pars.mp.treeflag ) {
 
-	   fprintf(stderr,"\nThis -T option is currently not supported in LinkedMutConf!\n");
+	   fprintf(stderr,"\nThis -T option is currently not supported in SimLinkedBSFS!\n");
 	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
-	   fprintf(stderr,"Exiting LinkedMutConf...\n");
+	   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 	   exit(-1);
 
 //	  	ns = 0 ;
@@ -321,9 +313,9 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 
 	if( pars.mp.timeflag ) {
 
-	   fprintf(stderr,"\nThis -L option is currently not supported in LinkedMutConf!\n");
+	   fprintf(stderr,"\nThis -L option is currently not supported in SimLinkedBSFS!\n");
 	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
-	   fprintf(stderr,"Exiting LinkedMutConf...\n");
+	   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 	   exit(-1);
 
 //      tt = 0.0 ;
@@ -390,9 +382,9 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
     }
    else if( segsitesin > 0 ) {
 
-	   fprintf(stderr,"\nThis -s option is currently not supported in LinkedMutConf!\n");
+	   fprintf(stderr,"\nThis -s option is currently not supported in SimLinkedBSFS!\n");
 	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
-	   fprintf(stderr,"Exiting LinkedMutConf...\n");
+	   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 	   exit(-1);
 
 //        pk = (double *)malloc((unsigned)(nsegs*sizeof(double)));
@@ -667,9 +659,9 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 				break;
 			case 'F' :
 
-			   fprintf(stderr,"\nThis -F option is currently not supported in LinkedMutConf!\n");
+			   fprintf(stderr,"\nThis -F option is currently not supported in SimLinkedBSFS!\n");
 			   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
-			   fprintf(stderr,"Exiting LinkedMutConf...\n");
+			   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 			   exit(-1);
 
 				arg++;
