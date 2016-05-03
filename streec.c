@@ -86,21 +86,30 @@ and thereafter modified by Champak Beeravolu Reddy (champak.br@gmail.com)
 
 int nchrom, begs, nsegs;
 long nlinks ;
-static int *nnodes = NULL ;  
 double t, cleft , pc, lnpc ;
 
-static unsigned seglimit = SEGINC ;
+static unsigned seglimit;
 static unsigned maxchr ;
-
-static struct chromo *chrom = NULL ;
-
+static struct chromo *chrom;
 struct node *ptree1, *ptree2;
+static struct segl *seglst;
+static int *nnodes;
 
-static struct segl *seglst = NULL ;
+//static unsigned seglimit = SEGINC ;
+//static struct chromo *chrom = NULL ;
+//static struct segl *seglst = NULL ;
+//static int *nnodes = NULL ;
+
+
 
 	struct segl *
 segtre_mig(struct c_params *cp, int *pnsegs ) 
 {
+	seglimit = SEGINC;
+	chrom = NULL;
+	seglst = NULL;
+	nnodes = NULL;
+
 	int i, j, k, dec, pop, pop2, c1, c2, ind, rchrom;
 	int migrant, source_pop, *config;
 //	double  ran1(), sum, x, ttemp, rft, clefta,  tmin, p  ;
