@@ -67,56 +67,56 @@ vector<int> npopVec;
 vector<vector<int> > siteConfigVec, mutsPerBlockVec, recsPerBlockVec;
 int brClass, mutClass, foldBrClass, allBrClasses;
 
-int ms_argc;
-char **ms_argv;
 int nLinkedChunks;
 
 
 double ran1() { return(rMT()); }
 
 
-void incrRecsPerBlockVec(int idx, int counter) {
-	++recsPerBlockVec[idx-1][counter];
+void incrRecsPerBlockVec(int counter) {
+	++recsPerBlockVec[0][counter];
 }
 
 
-void incrMutsPerBlockVec(int idx, int counter) {
-	++mutsPerBlockVec[idx-1][counter];
+void incrMutsPerBlockVec(int counter) {
+	++mutsPerBlockVec[0][counter];
 }
 
 
-void setSiteConfig(int idx, int *brConfVec) {
+void setSiteConfig(int *brConfVec) {
 	vector<int> vec(brConfVec, brConfVec+npopVec.size());
-	siteConfigVec[idx-1].push_back(intVec2BrConfig[vec]);
+	siteConfigVec[0].push_back(intVec2BrConfig[vec]);
 }
 
 
 void setMutConfigCount() {
 
-	for (int idx = 0; idx < nLinkedChunks; idx++) {
-		vector<int>::iterator segSite = siteConfigVec[idx].begin();
-		for (size_t block = 0; block < mutsPerBlockVec[idx].size(); block++) {
+	vector<int>::iterator segSite = siteConfigVec[0].begin();
+	for (size_t block = 0; block < mutsPerBlockVec[0].size(); block++) {
 
-			vector<int> mutConfigVec(allBrClasses, 0), foldedMutConfigVec(brClass, 0);
-			for (int site = 0; site < mutsPerBlockVec[idx][block]; site++) {
-				++mutConfigVec[*segSite];
-				++segSite;
-			}
-
-			for(int i = 1; i <= brClass; i++) {
-				foldedMutConfigVec[i-1] = mutConfigVec[i-1] + (foldBrClass * mutConfigVec[allBrClasses-i]);
-				if (foldBrClass && ((i-1) == (allBrClasses-i)))
-					foldedMutConfigVec[i-1] /= 2;
-			}
-
-			for(int i = 0; i < brClass; i++) {
-				if ((mutClass > 0) && (foldedMutConfigVec[i] > (mutClass - 2)))
-					foldedMutConfigVec[i] = mutClass - 1;
-			}
-
-			++finalTableMap[foldedMutConfigVec];
+		vector<int> mutConfigVec(allBrClasses, 0), foldedMutConfigVec(brClass, 0);
+		for (int site = 0; site < mutsPerBlockVec[0][block]; site++) {
+			++mutConfigVec[*segSite];
+			++segSite;
 		}
+
+		for(int i = 1; i <= brClass; i++) {
+			foldedMutConfigVec[i-1] = mutConfigVec[i-1] + (foldBrClass * mutConfigVec[allBrClasses-i]);
+			if (foldBrClass && ((i-1) == (allBrClasses-i)))
+				foldedMutConfigVec[i-1] /= 2;
+		}
+
+		for(int i = 0; i < brClass; i++) {
+			if ((mutClass > 0) && (foldedMutConfigVec[i] > (mutClass - 2)))
+				foldedMutConfigVec[i] = mutClass - 1;
+		}
+
+		++finalTableMap[foldedMutConfigVec];
 	}
+
+	mutsPerBlockVec[0] = vector <int>(nBlocks, 0);
+	recsPerBlockVec[0] = vector <int>(nBlocks, 0);
+	siteConfigVec[0].clear();
 }
 
 
@@ -259,15 +259,37 @@ int main(int argc, char* argv[]) {
 		nBlocks = ceil(tmp);
 	else
 		nBlocks = floor(tmp);
-	mutsPerBlockVec = vector<vector<int> > (nLinkedChunks, vector <int>(nBlocks, 0));
-	recsPerBlockVec = vector<vector<int> > (nLinkedChunks, vector <int>(nBlocks, 0));
-	siteConfigVec = vector<vector<int> > (nLinkedChunks, vector <int>());
+	mutsPerBlockVec = vector<vector<int> > (1, vector <int>(nBlocks, 0));
+	recsPerBlockVec = vector<vector<int> > (1, vector <int>(nBlocks, 0));
+	siteConfigVec = vector<vector<int> > (1, vector <int>());
+
+	// initializing the ms command line
+	int ms_argc;
+	char **ms_argv;
+	ms_argc = argc - 4;
+	ms_argv = (char **)malloc( ms_argc*sizeof(char *) ) ;
+
+	for (int i = 0; i < ms_argc; i++) {
+		ms_argv[i] = (char *)malloc(100*sizeof(char) ) ;
+		stringstream stst;
+		if (i == 2)
+			stst << 1;
+		else
+			stst << argv[i];
+
+		stst >> ms_argv[i];
+
+//		cout << ms_argv[i] << " ";
+	}
+//	cout << endl;
+//	exit(-1);
 
 	// calling ms
-	ms_argc = argc - 4;
-	ms_argv = argv;
+	for (int chunk = 0; chunk < nLinkedChunks; chunk++) {
+		main_ms(ms_argc, ms_argv);
 
-	main_ms(ms_argc, ms_argv);
+		setMutConfigCount();
+	}
 
 /*
 	printf("\nnBlocks: %d \nmutsPerBlock: ", nBlocks);
@@ -283,7 +305,6 @@ int main(int argc, char* argv[]) {
 	}
 */
 
-	setMutConfigCount();
 	int totBlocks = nBlocks*nLinkedChunks;
 	for (map<vector<int>, int>::iterator it = finalTableMap.begin(); it != finalTableMap.end(); it++)
 //		printf("%s : %d\n", getMutConfigStr(it->first).c_str(), it->second);

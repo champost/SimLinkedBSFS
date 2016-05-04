@@ -176,7 +176,12 @@ int main_ms(int ms_argc, char *ms_argv[])
 	ntbs = 0 ;   /* these next few lines are for reading in parameters from a file (for each sample) */
 	tbsparamstrs = (char **)malloc( ms_argc*sizeof(char *) ) ;
 
-//	for( i=0; i<ms_argc; i++) printf("%s ",ms_argv[i]);
+/*
+	for( i=0; i<ms_argc; i++) printf("%s ",ms_argv[i]);
+	printf("\n");
+	exit(-1);
+*/
+
 	for( i =0; i<ms_argc; i++) tbsparamstrs[i] = (char *)malloc(30*sizeof(char) ) ;
 	for( i = 1; i<ms_argc ; i++)
 			if( strcmp( ms_argv[i],"tbs") == 0 )  ms_argv[i] = tbsparamstrs[ ntbs++] ;
@@ -277,7 +282,7 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 	void prtree( struct node *ptree, int nsam);
 	void make_gametes(int nsam, int mfreq,  struct node *ptree, double tt, int newsites, int ns, char **list );
  	void ndes_setup( struct node *, int nsam );
- 	void incrRecsPerBlockVec(int idx, int counter);
+ 	void incrRecsPerBlockVec(int counter);
 
 
 	nsites = pars.cp.nsites ;
@@ -365,7 +370,7 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 //		printf("\nstart: %f; end: %f", start*nsinv, (start+len)*nsinv);
 		if (recBlockCount < nBlocks) {
 			if ((start+len)*nsinv < recBlockPos)
-				incrRecsPerBlockVec(count, recBlockCount);
+				incrRecsPerBlockVec(recBlockCount);
 			else {
 				do {
 					recBlockPos += blockSize;
@@ -373,7 +378,7 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 				} while ((start+len)*nsinv > recBlockPos);
 
 				if (recBlockCount < nBlocks)
-					incrRecsPerBlockVec(count, recBlockCount);
+					incrRecsPerBlockVec(recBlockCount);
 			}
 		}
 
@@ -516,7 +521,7 @@ void locate(int n,double beg, double len)
 {
 	int i;
 	double *ptr = (double *)malloc((unsigned)(n*sizeof(double)));
-	void incrMutsPerBlockVec(int idx, int counter);
+	void incrMutsPerBlockVec(int counter);
 
 
 	ordran(n,ptr);
@@ -524,7 +529,7 @@ void locate(int n,double beg, double len)
 		ptr[i] = beg + ptr[i]*len ;
 		if (mutBlockCount < nBlocks) {
 			if (ptr[i] < mutBlockPos)
-				incrMutsPerBlockVec(count, mutBlockCount);
+				incrMutsPerBlockVec(mutBlockCount);
 			else {
 				do {
 					mutBlockPos += blockSize;
@@ -532,7 +537,7 @@ void locate(int n,double beg, double len)
 				} while (ptr[i] > mutBlockPos);
 
 				if (mutBlockCount < nBlocks)
-					incrMutsPerBlockVec(count, mutBlockCount);
+					incrMutsPerBlockVec(mutBlockCount);
 			}
 		}
 	}
@@ -976,7 +981,7 @@ make_gametes(int nsam, int mfreq, struct node *ptree, double tt, int newsites, i
 {
 //	int  tip, j,  node ;
 	int  i, k, j,  node ;
-	void setSiteConfig(int idx, int *brConfVec);
+	void setSiteConfig(int *brConfVec);
 
         int pickb(int nsam, struct node *ptree, double tt), 
             pickbmf(int nsam, int mfreq, struct node *ptree, double tt) ;
@@ -1004,7 +1009,7 @@ make_gametes(int nsam, int mfreq, struct node *ptree, double tt, int newsites, i
     		}
     		segCountVec[i] += mutCounter;
     	}
-        setSiteConfig(count, segCountVec);
+        setSiteConfig(segCountVec);
 
 		}
 }
