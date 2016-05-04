@@ -145,19 +145,21 @@ and thereafter modified by Champak Beeravolu Reddy (champak.br@gmail.com)
 #include <string.h>
 #include "ms_new.h"
 
-#define SITESINC 10 
+#define SITESINC 10
 
 unsigned maxsites = SITESINC ;
 
-
-double *posit ;
-double segfac ;
-int count, ntbs, nseeds ;
+//double *posit ;
+//double segfac ;
+//int count, ntbs, nseeds ;
+int count;
 struct params pars ;
 //FILE *rf;
 
 double mutBlockPos, recBlockPos;
 int mutBlockCount, recBlockCount;
+
+#pragma omp threadprivate(count, pars, mutBlockPos, recBlockPos, mutBlockCount, recBlockCount)
 
 int main_ms(int ms_argc, char *ms_argv[])
 {
@@ -173,7 +175,7 @@ int main_ms(int ms_argc, char *ms_argv[])
  	void freed2matrix(double **m, int x);
 
 
-	ntbs = 0 ;   /* these next few lines are for reading in parameters from a file (for each sample) */
+//	ntbs = 0 ;   /* these next few lines are for reading in parameters from a file (for each sample) */
 	tbsparamstrs = (char **)malloc( ms_argc*sizeof(char *) ) ;
 
 /*
@@ -183,8 +185,8 @@ int main_ms(int ms_argc, char *ms_argv[])
 */
 
 	for( i =0; i<ms_argc; i++) tbsparamstrs[i] = (char *)malloc(30*sizeof(char) ) ;
-	for( i = 1; i<ms_argc ; i++)
-			if( strcmp( ms_argv[i],"tbs") == 0 )  ms_argv[i] = tbsparamstrs[ ntbs++] ;
+//	for( i = 1; i<ms_argc ; i++)
+//			if( strcmp( ms_argv[i],"tbs") == 0 )  ms_argv[i] = tbsparamstrs[ ntbs++] ;
 	
 	count=0;
 
@@ -198,6 +200,7 @@ int main_ms(int ms_argc, char *ms_argv[])
 	rf = fopen("breakpoints.txt","w");
 */
 
+/*
 	if( pars.mp.segsitesin ==  0 ) {
 	     list = cmatrix(pars.cp.nsam,maxsites+1);
 	     listX = pars.cp.nsam;
@@ -212,6 +215,7 @@ int main_ms(int ms_argc, char *ms_argv[])
 		 }
 	     listX = pars.cp.nsam;
 	}
+*/
 
     while( howmany-count++ ) {
 //	   if( (ntbs > 0) && (count >1 ) ){
@@ -251,7 +255,7 @@ int main_ms(int ms_argc, char *ms_argv[])
 //	fclose(pf);
 //	fclose(rf);
 
-	freecmatrix(list, listX);
+//	freecmatrix(list, listX);
 
 	// based on Valgrind Memcheck
 	free(pars.cp.config);

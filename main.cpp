@@ -51,8 +51,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <algorithm>
 #include <numeric>
 
+#include <omp.h>
+
 #include "MersenneTwister.h"
 #include "main.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -69,33 +72,33 @@ int brClass, mutClass, foldBrClass, allBrClasses;
 
 int nLinkedChunks;
 
+vector<MTRand> rMTVec;
 
-double ran1() { return(rMT()); }
+double ran1() { return(rMTVec[omp_get_thread_num()]()); }
 
 
 void incrRecsPerBlockVec(int counter) {
-	++recsPerBlockVec[0][counter];
+	++recsPerBlockVec[omp_get_thread_num()][counter];
 }
 
 
 void incrMutsPerBlockVec(int counter) {
-	++mutsPerBlockVec[0][counter];
+	++mutsPerBlockVec[omp_get_thread_num()][counter];
 }
 
 
 void setSiteConfig(int *brConfVec) {
 	vector<int> vec(brConfVec, brConfVec+npopVec.size());
-	siteConfigVec[0].push_back(intVec2BrConfig[vec]);
+	siteConfigVec[omp_get_thread_num()].push_back(intVec2BrConfig[vec]);
 }
 
 
 void setMutConfigCount() {
-
-	vector<int>::iterator segSite = siteConfigVec[0].begin();
-	for (size_t block = 0; block < mutsPerBlockVec[0].size(); block++) {
+	vector<int>::iterator segSite = siteConfigVec[omp_get_thread_num()].begin();
+	for (size_t block = 0; block < mutsPerBlockVec[omp_get_thread_num()].size(); block++) {
 
 		vector<int> mutConfigVec(allBrClasses, 0), foldedMutConfigVec(brClass, 0);
-		for (int site = 0; site < mutsPerBlockVec[0][block]; site++) {
+		for (int site = 0; site < mutsPerBlockVec[omp_get_thread_num()][block]; site++) {
 			++mutConfigVec[*segSite];
 			++segSite;
 		}
@@ -111,12 +114,13 @@ void setMutConfigCount() {
 				foldedMutConfigVec[i] = mutClass - 1;
 		}
 
+#pragma omp atomic
 		++finalTableMap[foldedMutConfigVec];
 	}
 
-	mutsPerBlockVec[0] = vector <int>(nBlocks, 0);
-	recsPerBlockVec[0] = vector <int>(nBlocks, 0);
-	siteConfigVec[0].clear();
+//	mutsPerBlockVec[omp_get_thread_num()] = vector <int>(nBlocks, 0);
+//	recsPerBlockVec[omp_get_thread_num()] = vector <int>(nBlocks, 0);
+//	siteConfigVec[omp_get_thread_num()].clear();
 }
 
 
@@ -217,6 +221,16 @@ void readPopSizes(int npops) {
 
 int main(int argc, char* argv[]) {
 
+	int procs = omp_get_num_procs();
+	omp_set_num_threads(procs);
+//	printf("Setting up %d threads...\n", procs);
+
+	unsigned long int seedPRNG = hash(time(NULL), clock());
+	for (int i = 0; i < procs; i++) {
+		rMT.seed(seedPRNG+i);
+		rMTVec.push_back(rMT);
+	}
+
 //	int nsam = atoi(argv[1]);
 	int kmax = atoi(argv[argc-3]), npopSize = atoi(argv[argc-2]);
 	char brFold = argv[argc-1][0];
@@ -259,9 +273,9 @@ int main(int argc, char* argv[]) {
 		nBlocks = ceil(tmp);
 	else
 		nBlocks = floor(tmp);
-	mutsPerBlockVec = vector<vector<int> > (1, vector <int>(nBlocks, 0));
-	recsPerBlockVec = vector<vector<int> > (1, vector <int>(nBlocks, 0));
-	siteConfigVec = vector<vector<int> > (1, vector <int>());
+	mutsPerBlockVec = vector<vector<int> > (procs, vector <int>(nBlocks, 0));
+	recsPerBlockVec = vector<vector<int> > (procs, vector <int>(nBlocks, 0));
+	siteConfigVec = vector<vector<int> > (procs, vector <int>());
 
 	// initializing the ms command line
 	int ms_argc;
@@ -285,6 +299,7 @@ int main(int argc, char* argv[]) {
 //	exit(-1);
 
 	// calling ms
+#pragma omp parallel for
 	for (int chunk = 0; chunk < nLinkedChunks; chunk++) {
 		main_ms(ms_argc, ms_argv);
 
@@ -307,8 +322,8 @@ int main(int argc, char* argv[]) {
 
 	int totBlocks = nBlocks*nLinkedChunks;
 	for (map<vector<int>, int>::iterator it = finalTableMap.begin(); it != finalTableMap.end(); it++)
-//		printf("%s : %d\n", getMutConfigStr(it->first).c_str(), it->second);
-		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
+		printf("%s : %d\n", getMutConfigStr(it->first).c_str(), it->second);
+//		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
 
 /*
 	ofstream ofs("segsites.txt",ios::out);

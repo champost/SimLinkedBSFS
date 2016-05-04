@@ -100,6 +100,7 @@ static int *nnodes;
 //static struct segl *seglst = NULL ;
 //static int *nnodes = NULL ;
 
+#pragma omp threadprivate(nchrom, begs, nsegs, nlinks, t, cleft , pc, lnpc, seglimit, maxchr, chrom, ptree1, ptree2, seglst, nnodes)
 
 
 	struct segl *
