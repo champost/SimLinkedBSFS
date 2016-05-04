@@ -186,10 +186,12 @@ int main_ms(int ms_argc, char *ms_argv[])
 //	if( ntbs > 0 )  for( k=0; k<ntbs; k++)  scanf(" %s", tbsparamstrs[k] );
 	getpars( ms_argc, ms_argv, &howmany) ;   /* results are stored in global variable, pars */
 	
-//	if( !pars.commandlineseedflag ) seedit( "s");
-//	pf = stdout ;
-//	pf = fopen("segsites.txt","w");
-//	rf = fopen("breakpoints.txt","w");
+/*
+	if( !pars.commandlineseedflag ) seedit( "s");
+	pf = stdout ;
+	pf = fopen("segsites.txt","w");
+	rf = fopen("breakpoints.txt","w");
+*/
 
 	if( pars.mp.segsitesin ==  0 ) {
 	     list = cmatrix(pars.cp.nsam,maxsites+1);
@@ -292,8 +294,8 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 
 	if( pars.mp.treeflag ) {
 
-	   fprintf(stderr,"\nThis -T option is currently not supported in SimLinkedBSFS!\n");
-	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
+	   fprintf(stderr,"\nThe -T option is currently not supported in SimLinkedBSFS!\n");
+	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really need it.\n");
 	   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 	   exit(-1);
 
@@ -313,8 +315,8 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 
 	if( pars.mp.timeflag ) {
 
-	   fprintf(stderr,"\nThis -L option is currently not supported in SimLinkedBSFS!\n");
-	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
+	   fprintf(stderr,"\nThe -L option is currently not supported in SimLinkedBSFS!\n");
+	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really need it.\n");
 	   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 	   exit(-1);
 
@@ -382,8 +384,8 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
     }
    else if( segsitesin > 0 ) {
 
-	   fprintf(stderr,"\nThis -s option is currently not supported in SimLinkedBSFS!\n");
-	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
+	   fprintf(stderr,"\nThe -s option is currently not supported in SimLinkedBSFS!\n");
+	   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really need it.\n");
 	   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
 	   exit(-1);
 
@@ -544,14 +546,15 @@ int NSEEDS = 3 ;
   void
 getpars(int ms_argc, char *ms_argv[], int *phowmany )
 {
-	int arg, i, j, sum , pop , argstart, npop , npop2, pop2 ;
+//	int arg, i, j, sum , pop , argstart, npop , npop2, pop2 ;
+	int arg, i, j, sum , pop , npop , npop2, pop2 ;
 	double migr, mij, psize, palpha ;
 	void addtoelist( struct devent *pt, struct devent *elist ); 
 	void argcheck( int arg, int ms_argc, char ** ) ;
 	int commandlineseed( char ** ) ;
 	void free_eventlist( struct devent *pt, int npop );
 	struct devent *ptemp , *pt ;
-	FILE *pf ;
+//	FILE *pf ;
 	char ch3 ;
 	
 
@@ -592,6 +595,7 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 	while( arg < ms_argc ){
 		if( ms_argv[arg][0] != '-' ) { fprintf(stderr," argument should be -%s ?\n", ms_argv[arg]); usage();}
 		switch ( ms_argv[arg][1] ){
+/*
 			case 'f' :
 				if( ntbs > 0 ) { fprintf(stderr," can't use tbs args and -f option.\n"); exit(1); }
 				arg++;
@@ -613,6 +617,7 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 				ms_argc--;
 				arg = argstart ;
 				break;
+*/
 			case 'r' : 
 				arg++;
 				argcheck( arg, ms_argc, ms_argv);
@@ -624,6 +629,7 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 					usage();
 					}
 				break;	
+/*
 			case 'p' :
 				arg++;
 				argcheck(arg,ms_argc,ms_argv);
@@ -640,15 +646,17 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 					usage();
 					}
 				break;		
+*/
 			case 't' : 
 				arg++;
 				argcheck( arg, ms_argc, ms_argv);
 				pars.mp.theta = atof(  ms_argv[arg++] );
 				break;
+/*
 			case 's' : 
 				arg++;
 				argcheck( arg, ms_argc, ms_argv);
-				if( ms_argv[arg-1][2] == 'e' ){  /* command line seeds */
+				if( ms_argv[arg-1][2] == 'e' ){  // command line seeds
 //					pars.commandlineseedflag = 1 ;
 //					if( count == 0 ) nseeds = commandlineseed(ms_argv+arg );
 					arg += nseeds ;
@@ -658,12 +666,6 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 				}
 				break;
 			case 'F' :
-
-			   fprintf(stderr,"\nThis -F option is currently not supported in SimLinkedBSFS!\n");
-			   fprintf(stderr,"Please contact the author Champak B. Reddy (champak.br@gmail.com) if you really it.\n");
-			   fprintf(stderr,"Exiting SimLinkedBSFS...\n");
-			   exit(-1);
-
 				arg++;
 				argcheck( arg, ms_argc, ms_argv);
 				pars.mp.mfreq = atoi(  ms_argv[arg++] );
@@ -672,14 +674,17 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
                                     usage();
                                     }
 				break;
+*/
 			case 'T' : 
 				pars.mp.treeflag = 1 ;
 				arg++;
 				break;
+/*
 			case 'L' : 
 				pars.mp.timeflag = 1 ;
 				arg++;
 				break;
+*/
 			case 'I' : 
 			    arg++;
 			    if( count == 0 ) {
@@ -893,12 +898,12 @@ usage()
 fprintf(stderr,"usage: ms nsam howmany \n");
 fprintf(stderr,"  Options: \n"); 
 fprintf(stderr,"\t -t theta   (this option and/or the next must be used. Theta = 4*N0*u )\n");
-fprintf(stderr,"\t -s segsites   ( fixed number of segregating sites)\n");
+//fprintf(stderr,"\t -s segsites   ( fixed number of segregating sites)\n");
 fprintf(stderr,"\t -T          (Output gene tree.)\n");
-fprintf(stderr,"\t -F minfreq     Output only sites with freq of minor allele >= minfreq.\n");
+//fprintf(stderr,"\t -F minfreq     Output only sites with freq of minor allele >= minfreq.\n");
 fprintf(stderr,"\t -r rho nsites     (rho here is 4Nc)\n");
-fprintf(stderr,"\t\t -c f track_len   (f = ratio of conversion rate to rec rate. tracklen is mean length.) \n");
-fprintf(stderr,"\t\t\t if rho = 0.,  f = 4*N0*g, with g the gene conversion rate.\n"); 
+//fprintf(stderr,"\t\t -c f track_len   (f = ratio of conversion rate to rec rate. tracklen is mean length.) \n");
+//fprintf(stderr,"\t\t\t if rho = 0.,  f = 4*N0*g, with g the gene conversion rate.\n");
 fprintf(stderr,"\t -G alpha  ( N(t) = N0*exp(-alpha*t) .  alpha = -log(Np/Nr)/t\n");      
 fprintf(stderr,"\t -I npop n1 n2 ... [mig_rate] (all elements of mig matrix set to mig_rate/(npop-1) \n");    
 fprintf(stderr,"\t\t -m i j m_ij    (i,j-th element of mig matrix set to m_ij.)\n"); 
@@ -918,8 +923,8 @@ fprintf(stderr,"\t\t proportion is probability that each lineage stays in pop-i.
 fprintf(stderr,"\t\t Size of pop npop is set to N0 and alpha = 0.0 , size and alpha of pop i are unchanged.\n");
 fprintf(stderr,"\t -ej t i j   ( Join lineages in pop i and pop j into pop j\n");
 fprintf(stderr,"\t\t  size, alpha and M are unchanged.\n");  
-fprintf(stderr,"\t  -f filename     ( Read command line arguments from file filename.)\n"); 
-fprintf(stderr,"\t  -p n ( Specifies the precision of the position output.  n is the number of digits after the decimal.)\n");
+//fprintf(stderr,"\t  -f filename     ( Read command line arguments from file filename.)\n");
+//fprintf(stderr,"\t  -p n ( Specifies the precision of the position output.  n is the number of digits after the decimal.)\n");
 fprintf(stderr," See msdoc.pdf for explanation of these parameters.\n");
 
 exit(1);
@@ -979,10 +984,12 @@ make_gametes(int nsam, int mfreq, struct node *ptree, double tt, int newsites, i
 	for(  j=ns; j< ns+newsites ;  j++ ) {
 		if( mfreq == 1 ) node = pickb(  nsam, ptree, tt);
 		else node = pickbmf(  nsam, mfreq, ptree, tt);
-//		for( tip=0; tip < nsam ; tip++) {
-//		   if( tdesn(ptree, tip, node) ) list[tip][j] = STATE1 ;
-//		   else list[tip][j] = STATE2 ;
-//		   }
+/*
+		for( tip=0; tip < nsam ; tip++) {
+		   if( tdesn(ptree, tip, node) ) list[tip][j] = STATE1 ;
+		   else list[tip][j] = STATE2 ;
+		   }
+*/
 
 		int segCountVec[pars.cp.npop];
         memset(segCountVec,0,pars.cp.npop*sizeof(int));

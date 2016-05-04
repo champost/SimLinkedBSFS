@@ -69,7 +69,7 @@ int brClass, mutClass, foldBrClass, allBrClasses;
 
 int ms_argc;
 char **ms_argv;
-int nLinkedBlocks;
+int nLinkedChunks;
 
 
 double ran1() { return(rMT()); }
@@ -93,14 +93,14 @@ void setSiteConfig(int idx, int *brConfVec) {
 
 void setMutConfigCount() {
 
-	for (int idx = 0; idx < nLinkedBlocks; idx++) {
-		vector<int>::iterator siteIt = siteConfigVec[idx].begin();
+	for (int idx = 0; idx < nLinkedChunks; idx++) {
+		vector<int>::iterator segSite = siteConfigVec[idx].begin();
 		for (size_t block = 0; block < mutsPerBlockVec[idx].size(); block++) {
 
 			vector<int> mutConfigVec(allBrClasses, 0), foldedMutConfigVec(brClass, 0);
 			for (int site = 0; site < mutsPerBlockVec[idx][block]; site++) {
-				++mutConfigVec[*siteIt];
-				++siteIt;
+				++mutConfigVec[*segSite];
+				++segSite;
 			}
 
 			for(int i = 1; i <= brClass; i++) {
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
 //	int nsam = atoi(argv[1]);
 	int kmax = atoi(argv[argc-3]), npopSize = atoi(argv[argc-2]);
 	char brFold = argv[argc-1][0];
-	nLinkedBlocks = atoi(argv[2]);
+	nLinkedChunks = atoi(argv[2]);
 	blockSize = atof(argv[argc-4]);
 
 	readPopSizes(npopSize);
@@ -259,11 +259,9 @@ int main(int argc, char* argv[]) {
 		nBlocks = ceil(tmp);
 	else
 		nBlocks = floor(tmp);
-//	mutsPerBlockVec = vector<int>(nBlocks, 0);
-//	recsPerBlockVec = vector<int>(nBlocks, 0);
-	mutsPerBlockVec = vector<vector<int> > (nLinkedBlocks, vector <int>(nBlocks, 0));
-	recsPerBlockVec = vector<vector<int> > (nLinkedBlocks, vector <int>(nBlocks, 0));
-	siteConfigVec = vector<vector<int> > (nLinkedBlocks, vector <int>());
+	mutsPerBlockVec = vector<vector<int> > (nLinkedChunks, vector <int>(nBlocks, 0));
+	recsPerBlockVec = vector<vector<int> > (nLinkedChunks, vector <int>(nBlocks, 0));
+	siteConfigVec = vector<vector<int> > (nLinkedChunks, vector <int>());
 
 	// calling ms
 	ms_argc = argc - 4;
@@ -286,10 +284,10 @@ int main(int argc, char* argv[]) {
 */
 
 	setMutConfigCount();
-	int totBlocks = nBlocks*nLinkedBlocks;
+	int totBlocks = nBlocks*nLinkedChunks;
 	for (map<vector<int>, int>::iterator it = finalTableMap.begin(); it != finalTableMap.end(); it++)
-		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second);
-//		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
+//		printf("%s : %d\n", getMutConfigStr(it->first).c_str(), it->second);
+		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
 
 /*
 	ofstream ofs("segsites.txt",ios::out);
