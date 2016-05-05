@@ -299,11 +299,20 @@ int main(int argc, char* argv[]) {
 //	exit(-1);
 
 	// calling ms
+	vector<int> msStatus(procs, 0);
 #pragma omp parallel for
 	for (int chunk = 0; chunk < nLinkedChunks; chunk++) {
-		main_ms(ms_argc, ms_argv);
+		msStatus[omp_get_thread_num()] = main_ms(ms_argc, ms_argv);
 
-		setMutConfigCount();
+		if (msStatus[omp_get_thread_num()] < 0)
+			chunk = nLinkedChunks;
+		else
+			setMutConfigCount();
+	}
+
+	if (accumulate(msStatus.begin(), msStatus.end(), 0) < 0) {
+		printf("Aborting SimLinkedBSFS...\n");
+		exit(-1);
 	}
 
 /*
@@ -322,8 +331,8 @@ int main(int argc, char* argv[]) {
 
 	int totBlocks = nBlocks*nLinkedChunks;
 	for (map<vector<int>, int>::iterator it = finalTableMap.begin(); it != finalTableMap.end(); it++)
-		printf("%s : %d\n", getMutConfigStr(it->first).c_str(), it->second);
-//		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
+//		printf("%s : %d\n", getMutConfigStr(it->first).c_str(), it->second);
+		printf("%s : %.5e\n", getMutConfigStr(it->first).c_str(), (double) it->second/totBlocks);
 
 /*
 	ofstream ofs("segsites.txt",ios::out);

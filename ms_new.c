@@ -164,19 +164,21 @@ int mutBlockCount, recBlockCount;
 int main_ms(int ms_argc, char *ms_argv[])
 {
 //	int i, k, howmany, segsites, listX;
-	int i, howmany, listX;
-	char **list, **cmatrix(), **tbsparamstrs ;
+	int howmany;
+//	char **list, **cmatrix(), **tbsparamstrs ;
 //	FILE *pf, *fopen() ;
 	double probss, tmrca, ttot ;
 	void seedit( const char * ) ;
 	void getpars( int ms_argc, char *ms_argv[], int *howmany )  ;
-	int gensam( char **list, double *probss, double *ptmrca, double *pttot ) ;
+//	int gensam( char **list, double *probss, double *ptmrca, double *pttot ) ;
+	int	gensam(double *pprobss, double *ptmrca, double *pttot, int *crash_flag);
 	void freecmatrix(char **m, int nsam);
  	void freed2matrix(double **m, int x);
+	void free_eventlist( struct devent *pt, int npop );
 
 
 //	ntbs = 0 ;   /* these next few lines are for reading in parameters from a file (for each sample) */
-	tbsparamstrs = (char **)malloc( ms_argc*sizeof(char *) ) ;
+//	tbsparamstrs = (char **)malloc( ms_argc*sizeof(char *) ) ;
 
 /*
 	for( i=0; i<ms_argc; i++) printf("%s ",ms_argv[i]);
@@ -184,7 +186,7 @@ int main_ms(int ms_argc, char *ms_argv[])
 	exit(-1);
 */
 
-	for( i =0; i<ms_argc; i++) tbsparamstrs[i] = (char *)malloc(30*sizeof(char) ) ;
+//	for( i =0; i<ms_argc; i++) tbsparamstrs[i] = (char *)malloc(30*sizeof(char) ) ;
 //	for( i = 1; i<ms_argc ; i++)
 //			if( strcmp( ms_argv[i],"tbs") == 0 )  ms_argv[i] = tbsparamstrs[ ntbs++] ;
 	
@@ -247,7 +249,27 @@ int main_ms(int ms_argc, char *ms_argv[])
 //	          for(i=0;i<pars.cp.nsam; i++) { fprintf(pf,"%s\n", list[i] ); }
 //        }
 
-        gensam( list, &probss, &tmrca, &ttot ) ;
+    	int ms_thread_crash_flag = 0, main_crash_counter = 0;
+    	gensam(&probss, &tmrca, &ttot, &ms_thread_crash_flag);
+
+    	if (ms_thread_crash_flag && (main_crash_counter < 10)) {
+    		--count;
+        	++main_crash_counter;
+
+        	ms_thread_crash_flag = 0;
+        	gensam(&probss, &tmrca, &ttot, &ms_thread_crash_flag);
+    	}
+    	else if (main_crash_counter == 10) {
+    		printf("ms crashed more than 10 times on a single thread!\n");
+    		free(pars.cp.config);
+    		free(pars.cp.size);
+    		free(pars.cp.alphag);
+    	//	free(pars.cp.deventlist);
+    		free_eventlist(pars.cp.deventlist, pars.cp.npop);
+    		freed2matrix(pars.cp.mig_mat, pars.cp.npop);
+
+    		return -1;
+    	}
 
     }
 //	if( !pars.commandlineseedflag ) seedit( "end" );
@@ -261,7 +283,8 @@ int main_ms(int ms_argc, char *ms_argv[])
 	free(pars.cp.config);
 	free(pars.cp.size);
 	free(pars.cp.alphag);
-	free(pars.cp.deventlist);
+//	free(pars.cp.deventlist);
+	free_eventlist(pars.cp.deventlist, pars.cp.npop);
 	freed2matrix(pars.cp.mig_mat, pars.cp.npop);
 
 	return 0;
@@ -269,12 +292,16 @@ int main_ms(int ms_argc, char *ms_argv[])
 
 
 
+/*
 	int 
 gensam( char **list, double *pprobss, double *ptmrca, double *pttot ) 
+*/
+int	gensam(double *pprobss, double *ptmrca, double *pttot, int *crash_flag)
 {
 //	int nsegs, h, i, k, j, seg, ns, start, end, len, segsit ;
 	int nsegs, k, seg, ns = 0, start, end, len, segsit ;
-	struct segl *seglst, *segtre_mig(struct c_params *p, int *nsegs ) ; /* used to be: [MAXSEG];  */
+//	struct segl *seglst, *segtre_mig(struct c_params *p, int *nsegs ) ; /* used to be: [MAXSEG];  */
+	struct segl *seglst, *segtre_mig(struct c_params *cp, int *pnsegs, int *crash_flag);
 	double nsinv,  tseg, tt, ttime(struct node *, int nsam), ttimemf(struct node *, int nsam, int mfreq) ;
 //	double *pk;
 //	int *ss;
@@ -284,14 +311,23 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 	double theta;
 	int nsam;
 	void prtree( struct node *ptree, int nsam);
-	void make_gametes(int nsam, int mfreq,  struct node *ptree, double tt, int newsites, int ns, char **list );
+//	void make_gametes(int nsam, int mfreq,  struct node *ptree, double tt, int newsites, int ns, char **list );
+	void make_gametes(int nsam, int mfreq,  struct node *ptree, double tt, int newsites, int ns);
  	void ndes_setup( struct node *, int nsam );
  	void incrRecsPerBlockVec(int counter);
 
 
 	nsites = pars.cp.nsites ;
 	nsinv = 1./nsites;
-	seglst = segtre_mig(&(pars.cp),  &nsegs ) ;
+//	seglst = segtre_mig(&(pars.cp),  &nsegs ) ;
+
+	seglst = segtre_mig(&(pars.cp), &nsegs, crash_flag);
+	if (*crash_flag) {
+		for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++)
+			free(seglst[seg].ptree);
+		free(seglst);
+		return 0;
+	}
 	
 //	if( (pars.cp.r > 0.0 ) || (pars.cp.f > 0.0) )
 //		fprintf(rf,"%d\n", nsegs-1);
@@ -368,7 +404,7 @@ gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
 //			  biggerlist(nsam, list) ;
 //		}
 //		make_gametes(nsam,mfreq,seglst[seg].ptree,tt, segsit, ns, list );
-		make_gametes(nsam,1,seglst[seg].ptree,tt, segsit, ns, list );
+		make_gametes(nsam,1,seglst[seg].ptree,tt, segsit, ns);
 		free(seglst[seg].ptree) ;
 
 //		printf("\nstart: %f; end: %f", start*nsinv, (start+len)*nsinv);
@@ -683,12 +719,12 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
                                     usage();
                                     }
 				break;
-*/
+
 			case 'T' : 
 				pars.mp.treeflag = 1 ;
 				arg++;
 				break;
-/*
+
 			case 'L' : 
 				pars.mp.timeflag = 1 ;
 				arg++;
@@ -908,7 +944,7 @@ fprintf(stderr,"usage: ms nsam howmany \n");
 fprintf(stderr,"  Options: \n"); 
 fprintf(stderr,"\t -t theta   (this option and/or the next must be used. Theta = 4*N0*u )\n");
 //fprintf(stderr,"\t -s segsites   ( fixed number of segregating sites)\n");
-fprintf(stderr,"\t -T          (Output gene tree.)\n");
+//fprintf(stderr,"\t -T          (Output gene tree.)\n");
 //fprintf(stderr,"\t -F minfreq     Output only sites with freq of minor allele >= minfreq.\n");
 fprintf(stderr,"\t -r rho nsites     (rho here is 4Nc)\n");
 //fprintf(stderr,"\t\t -c f track_len   (f = ratio of conversion rate to rec rate. tracklen is mean length.) \n");
@@ -980,8 +1016,11 @@ free_eventlist( struct devent *pt, int npop )
 #define STATE1 '1'
 #define STATE2 '0'
 
+/*
 	void
 make_gametes(int nsam, int mfreq, struct node *ptree, double tt, int newsites, int ns, char **list )
+*/
+void make_gametes(int nsam, int mfreq, struct node *ptree, double tt, int newsites, int ns)
 {
 //	int  tip, j,  node ;
 	int  i, k, j,  node ;
