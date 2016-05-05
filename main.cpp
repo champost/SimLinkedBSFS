@@ -118,9 +118,9 @@ void setMutConfigCount() {
 		++finalTableMap[foldedMutConfigVec];
 	}
 
-//	mutsPerBlockVec[omp_get_thread_num()] = vector <int>(nBlocks, 0);
-//	recsPerBlockVec[omp_get_thread_num()] = vector <int>(nBlocks, 0);
-//	siteConfigVec[omp_get_thread_num()].clear();
+	mutsPerBlockVec[omp_get_thread_num()] = vector <int>(nBlocks, 0);
+	recsPerBlockVec[omp_get_thread_num()] = vector <int>(nBlocks, 0);
+	siteConfigVec[omp_get_thread_num()].clear();
 }
 
 
