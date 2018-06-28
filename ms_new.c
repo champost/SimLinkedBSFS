@@ -680,6 +680,7 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 				argcheck(arg,ms_argc,ms_argv);
 				pars.output_precision = atoi( ms_argv[arg++] ) ;
 				break;
+*/
 			case 'c' : 
 				arg++;
 				argcheck( arg, ms_argc, ms_argv);
@@ -691,7 +692,6 @@ getpars(int ms_argc, char *ms_argv[], int *phowmany )
 					usage();
 					}
 				break;		
-*/
 			case 't' : 
 				arg++;
 				argcheck( arg, ms_argc, ms_argv);
