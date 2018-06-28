@@ -6,7 +6,7 @@
 ### Install instructions
 It is easiest to build a `SimLinkedBSFS` binary under all flavours of Linux. `SimLinkedBSFS` requires the GNU Compiler Collection ([`gcc`](https://gcc.gnu.org/)). If you do not have `gcc`, you can use your OS specific package handling utility (under Debian/Ubuntu) :
 
-    sudo apt-get install build-essential git
+    sudo apt-get install build-essential
 
 1. Once `gcc` is available, run
 
@@ -35,7 +35,7 @@ If you want `SimLinkedBSFS` to be accessible from anywhere, such as your data fo
 This ensures that you can execute the program by specifying `SimLinkedBSFS ...` instead of `./SimLinkedBSFS ...` from the installation folder. This holds only if `~/bin` exists and is part of your `$PATH` environment variable.
 
 ### Usage
-The commands for `SimLinkedBSFS` are almost entirely in the [`ms`](http://home.uchicago.edu/rhudson1/source/mksamples.html) format. For example we would like to simulate a 2 population scenario consisting of 5 and 2 haploid samples respectively. The command below will simulate 100000 sequences for each sample of length 4000 bp.
+The commands for `SimLinkedBSFS` are almost entirely in the [`ms`](http://home.uchicago.edu/rhudson1/source/mksamples.html) format. For example we would like to simulate a 2 population scenario consisting of 5 and 2 haploid samples respectively. The command below will simulate 100000 sequences of length 4000 bp.
 
     ms 7 100000 -t 1 -r 0.5 4001 -I 2 5 2 -m 1 2 1 -ej 1.25 1 2
 
@@ -43,7 +43,7 @@ Now let us assume that we want to create a `bSFS` consisting of 1000 bp blocks. 
 
     echo 5 2 > popconfig.txt
 
-Next, we run `SimLinkedBSFS` as follows :
+Next, we can run `SimLinkedBSFS` as follows :
 
     SimLinkedBSFS 7 100000 -t 1 -r 0.5 4001 -I 2 5 2 -m 1 2 1 -ej 1.25 1 2 A B C D > my_two_pop_bSFS.txt
 
